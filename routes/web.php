@@ -5,13 +5,14 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\AIController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return redirect('/login');
 });
 
 Route::get('/home', function () {
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect('/dashboard');
     }
     return redirect('/login');
@@ -37,7 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/ai/enhance', [AIController::class, 'enhance'])->name('ai.enhance');
 
     Route::post('/logout', function () {
-        auth()->logout();
+        Auth::logout();
         return redirect('/');
     })->name('logout');
 });
