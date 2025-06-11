@@ -106,32 +106,16 @@ export default function NoteEditor({ note }: NoteEditorProps) {
                 throw new Error('Failed to enhance content');
             }
 
-            const reader = response.body?.getReader();
-            if (!reader) return;
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = new TextDecoder().decode(value);
-                const lines = chunk.split('\n');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            if (data.choices?.[0]?.delta?.content) {
-                                setAiResult(prev => prev + data.choices[0].delta.content);
-                            }
-                        } catch (e) {
-                            // Ignore parsing errors
-                        }
-                    }
-                }
+            const data = await response.json();
+            
+            if (data.error) {
+                setAiResult(data.error);
+            } else if (data.result) {
+                setAiResult(data.result);
             }
         } catch (error) {
             console.error('AI Enhancement Error:', error);
-            alert('Failed to enhance content. Please try again.');
+            setAiResult('Failed to enhance content. Please try again.');
         } finally {
             setAiLoading(false);
         }

@@ -20,13 +20,30 @@ class AIController extends Controller
 
         $prompt = $this->getPromptForAction($action, $content);
 
-        return new StreamedResponse(function () use ($prompt) {
-            $this->streamOpenAIResponse($prompt);
-        }, 200, [
-            'Content-Type' => 'text/plain',
-            'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
+        // Real API call
+        $apiKey = config('openai.api_key');
+        $model = config('openai.model');
+
+        if (empty($apiKey)) {
+            return response()->json(['error' => 'OpenAI API key not configured'], 500);
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://api.openai.com/v1/chat/completions', [
+            'model' => $model,
+            'messages' => [
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'stream' => false,
         ]);
+
+        if ($response->successful()) {
+            return response()->json(['result' => $response->json('choices.0.message.content')]);
+        } else {
+            return response()->json(['error' => 'Failed to get response from OpenAI: ' . $response->status()], 500);
+        }
     }
 
     private function getPromptForAction(string $action, string $content): string
@@ -36,29 +53,5 @@ class AIController extends Controller
             'improve' => "Please improve the following text for clarity, grammar, and style:\n\n{$content}",
             'generate_tags' => "Generate 5-10 relevant tags for the following text (return only the tags separated by commas):\n\n{$content}",
         };
-    }
-
-    private function streamOpenAIResponse(string $prompt): void
-    {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('openai.api_key'),
-            'Content-Type' => 'application/json',
-        ])->post('https://api.openai.com/v1/chat/completions', [
-            'model' => config('openai.model'),
-            'messages' => [
-                ['role' => 'user', 'content' => $prompt]
-            ],
-            'stream' => true,
-        ]);
-
-        if ($response->successful()) {
-            $body = $response->getBody();
-            while (!$body->eof()) {
-                $line = $body->read(1024);
-                echo $line;
-                ob_flush();
-                flush();
-            }
-        }
     }
 }
