@@ -289,21 +289,47 @@ $commonWords = $analytics->getMostCommonWords();
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" href="/favicon.ico">
+    <style>
+        /* Custom responsive styles for better mobile experience */
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px !important;
+            }
+        }
+
+        /* Ensure charts are responsive */
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .chart-wrapper {
+                height: 200px;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">📊 Note Analytics</h1>
-                    <p class="text-gray-600 mt-2">Insights and statistics about your notes</p>
-                    <p class="text-sm text-blue-600 mt-1">✨ Powered by Raw PHP (No Laravel Framework)</p>
+        <div class="mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="text-center sm:text-left">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">📊 Note Analytics</h1>
+                    <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Insights and statistics about your notes</p>
+                    <p class="text-xs sm:text-sm text-blue-600 mt-1">✨ Powered by Raw PHP (No Laravel Framework)</p>
                     <p class="text-xs text-gray-500 mt-1">Database: <?= strtoupper($dbConfig['driver']) ?></p>
                 </div>
-                <div>
-                    <a href="/dashboard" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <div class="flex justify-center sm:justify-end">
+                    <a href="/dashboard" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto text-center">
                         ← Back to Dashboard
                     </a>
                 </div>
@@ -311,97 +337,110 @@ $commonWords = $analytics->getMostCommonWords();
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                        📝
+                    <div class="p-2 sm:p-3 rounded-full bg-blue-100 text-blue-600 flex-shrink-0">
+                        <span class="text-lg sm:text-xl">📝</span>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Notes</p>
-                        <p class="text-2xl font-bold text-gray-900"><?= number_format($totalNotes) ?></p>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Notes</p>
+                        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= number_format($totalNotes) ?></p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600">
-                        📊
+                    <div class="p-2 sm:p-3 rounded-full bg-green-100 text-green-600 flex-shrink-0">
+                        <span class="text-lg sm:text-xl">📊</span>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Words</p>
-                        <p class="text-2xl font-bold text-gray-900"><?= number_format($totalWords) ?></p>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Words</p>
+                        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= number_format($totalWords) ?></p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                        📏
+                    <div class="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600 flex-shrink-0">
+                        <span class="text-lg sm:text-xl">📏</span>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Avg Note Length</p>
-                        <p class="text-2xl font-bold text-gray-900"><?= number_format($avgNoteLength) ?> chars</p>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Avg Note Length</p>
+                        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= number_format($avgNoteLength) ?> <span class="text-sm sm:text-base font-normal">chars</span></p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-orange-100 text-orange-600">
-                        🏷️
+                    <div class="p-2 sm:p-3 rounded-full bg-orange-100 text-orange-600 flex-shrink-0">
+                        <span class="text-lg sm:text-xl">🏷️</span>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Unique Tags</p>
-                        <p class="text-2xl font-bold text-gray-900"><?= count($topTags) ?></p>
+                    <div class="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Unique Tags</p>
+                        <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= count($topTags) ?></p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <!-- Notes Per Month Chart -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Notes Created Per Month</h3>
-                <canvas id="notesPerMonthChart" width="400" height="200"></canvas>
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <span class="mr-2">📈</span>
+                    <span class="truncate">Notes Created Per Month</span>
+                </h3>
+                <div class="chart-wrapper">
+                    <canvas id="notesPerMonthChart" class="w-full h-full"></canvas>
+                </div>
             </div>
 
             <!-- Top Tags Chart -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">🏷️ Most Used Tags</h3>
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <span class="mr-2">🏷️</span>
+                    <span class="truncate">Most Used Tags</span>
+                </h3>
                 <?php if (empty($topTags)): ?>
-                    <div class="flex items-center justify-center h-48 text-gray-500">
+                    <div class="flex items-center justify-center h-32 sm:h-48 text-gray-500">
                         <div class="text-center">
-                            <p class="text-lg">🏷️</p>
-                            <p class="mt-2">No tags found</p>
-                            <p class="text-sm">Start adding tags to your notes!</p>
+                            <p class="text-lg sm:text-xl">🏷️</p>
+                            <p class="mt-2 text-sm sm:text-base">No tags found</p>
+                            <p class="text-xs sm:text-sm">Start adding tags to your notes!</p>
                         </div>
                     </div>
                 <?php else: ?>
-                    <canvas id="topTagsChart" width="400" height="200"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="topTagsChart" class="w-full h-full"></canvas>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
 
         <!-- Word Cloud -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">☁️ Most Common Words</h3>
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                <span class="mr-2">☁️</span>
+                <span>Most Common Words</span>
+            </h3>
             <?php if (empty($commonWords)): ?>
-                <div class="flex items-center justify-center h-32 text-gray-500">
+                <div class="flex items-center justify-center h-24 sm:h-32 text-gray-500">
                     <div class="text-center">
-                        <p class="text-lg">☁️</p>
-                        <p class="mt-2">No content to analyze</p>
-                        <p class="text-sm">Create some notes to see word patterns!</p>
+                        <p class="text-lg sm:text-xl">☁️</p>
+                        <p class="mt-2 text-sm sm:text-base">No content to analyze</p>
+                        <p class="text-xs sm:text-sm">Create some notes to see word patterns!</p>
                     </div>
                 </div>
             <?php else: ?>
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap gap-1 sm:gap-2">
                     <?php foreach ($commonWords as $word => $count): ?>
-                        <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                            style="font-size: <?= min(16 + ($count * 2), 24) ?>px;">
+                        <span class="inline-block bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium break-words"
+                            style="font-size: <?= min(12 + ($count * 1), 18) ?>px;">
                             <?= htmlspecialchars($word) ?> (<?= $count ?>)
                         </span>
                     <?php endforeach; ?>
@@ -410,13 +449,17 @@ $commonWords = $analytics->getMostCommonWords();
         </div>
 
         <!-- Footer -->
-        <div class="text-center text-gray-500 text-sm">
+        <div class="text-center text-gray-500 text-xs sm:text-sm space-y-1">
             <p>🔧 This analytics dashboard is built with <strong>Raw PHP</strong> - no Laravel framework used!</p>
-            <p class="mt-1">Generated on <?= date('Y-m-d H:i:s') ?> | Database: <?= strtoupper($dbConfig['driver']) ?></p>
+            <p>Generated on <?= date('Y-m-d H:i:s') ?> | Database: <?= strtoupper($dbConfig['driver']) ?></p>
         </div>
     </div>
 
     <script>
+        // Make charts responsive
+        Chart.defaults.responsive = true;
+        Chart.defaults.maintainAspectRatio = false;
+
         // Notes Per Month Chart
         const notesPerMonthCtx = document.getElementById('notesPerMonthChart').getContext('2d');
         const notesPerMonthData = <?= json_encode(array_reverse($notesPerMonth)) ?>;
@@ -431,19 +474,54 @@ $commonWords = $analytics->getMostCommonWords();
                     borderColor: 'rgb(59, 130, 246)',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    borderWidth: window.innerWidth < 640 ? 2 : 3,
+                    pointRadius: window.innerWidth < 640 ? 3 : 4,
+                    pointHoverRadius: window.innerWidth < 640 ? 5 : 6
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
                 scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                size: window.innerWidth < 640 ? 10 : 12
+                            },
+                            maxRotation: window.innerWidth < 640 ? 45 : 0
+                        },
+                        grid: {
+                            display: window.innerWidth >= 640
+                        }
+                    },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: window.innerWidth < 640 ? 10 : 12
+                            }
+                        },
+                        grid: {
+                            display: window.innerWidth >= 640
+                        }
                     }
                 },
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        titleFont: {
+                            size: window.innerWidth < 640 ? 12 : 14
+                        },
+                        bodyFont: {
+                            size: window.innerWidth < 640 ? 11 : 13
+                        }
                     }
                 }
             }
@@ -463,19 +541,45 @@ $commonWords = $analytics->getMostCommonWords();
                         backgroundColor: [
                             '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
                             '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
-                        ]
+                        ],
+                        borderWidth: window.innerWidth < 640 ? 1 : 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: window.innerWidth < 640 ? '50%' : '60%',
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: window.innerWidth < 640 ? 'bottom' : 'right',
+                            labels: {
+                                font: {
+                                    size: window.innerWidth < 640 ? 10 : 12
+                                },
+                                padding: window.innerWidth < 640 ? 10 : 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            titleFont: {
+                                size: window.innerWidth < 640 ? 12 : 14
+                            },
+                            bodyFont: {
+                                size: window.innerWidth < 640 ? 11 : 13
+                            }
                         }
                     }
                 }
             });
         <?php endif; ?>
+
+        // Handle window resize for better responsiveness
+        window.addEventListener('resize', function() {
+            // Charts will automatically resize due to responsive: true
+            // But we can add any additional responsive behavior here if needed
+        });
     </script>
 </body>
 
