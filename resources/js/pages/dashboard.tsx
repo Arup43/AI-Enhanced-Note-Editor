@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type Note } from '@/types/notes';
@@ -24,6 +25,8 @@ interface DashboardProps {
 export default function Dashboard({ notes }: DashboardProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const { delete: deleteNote } = useForm();
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [noteToDelete, setNoteToDelete] = useState<number | null>(null);
 
     const filteredNotes = notes.filter(
         (note) =>
@@ -32,9 +35,14 @@ export default function Dashboard({ notes }: DashboardProps) {
             note.tags?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    const handleDeleteNote = (noteId: number) => {
-        if (confirm('Are you sure you want to delete this note?')) {
-            deleteNote(route('notes.destroy', noteId));
+    const openDeleteDialog = (noteId: number) => {
+        setNoteToDelete(noteId);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (noteToDelete) {
+            deleteNote(route('notes.destroy', noteToDelete));
         }
     };
 
@@ -106,7 +114,7 @@ export default function Dashboard({ notes }: DashboardProps) {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => handleDeleteNote(note.id)}
+                                                onClick={() => openDeleteDialog(note.id)}
                                                 className="text-red-600 hover:text-red-700"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -142,6 +150,18 @@ export default function Dashboard({ notes }: DashboardProps) {
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <DeleteConfirmationDialog
+                isOpen={isDeleteDialogOpen}
+                onClose={() => setIsDeleteDialogOpen(false)}
+                onConfirm={() => {
+                    confirmDelete();
+                    setIsDeleteDialogOpen(false);
+                }}
+                title="Delete Note"
+                description="Are you sure you want to delete this note? This action cannot be undone."
+            />
         </AppLayout>
     );
 }
