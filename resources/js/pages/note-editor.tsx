@@ -151,13 +151,6 @@ export default function NoteEditor({ note }: NoteEditorProps) {
         setData('tags', tags);
     };
 
-    const applyAIResult = () => {
-        if (aiResult) {
-            setData('content', data.content + '\n\n' + aiResult);
-            setAiResult('');
-        }
-    };
-
     const breadcrumbsWithTitle = [
         ...breadcrumbs,
         { title: isEditing ? note.title : 'New Note', href: '#' },
@@ -298,13 +291,6 @@ export default function NoteEditor({ note }: NoteEditorProps) {
                                         <div className="mt-2 p-3 bg-muted rounded-md text-sm">
                                             {aiResult}
                                         </div>
-                                        <Button
-                                            onClick={applyAIResult}
-                                            size="sm"
-                                            className="mt-2"
-                                        >
-                                            Apply to Note
-                                        </Button>
                                     </div>
                                 </div>
                             )}
@@ -339,4 +325,4 @@ export default function NoteEditor({ note }: NoteEditorProps) {
             </div>
         </AppLayout>
     );
-} 
+}
