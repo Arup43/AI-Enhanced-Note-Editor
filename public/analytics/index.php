@@ -10,6 +10,17 @@
 // Start session to check authentication
 session_start();
 
+// Allow setting user ID via URL parameter (temporary solution)
+function getUserIdFromRequest()
+{
+    // Check if user_id is specified in URL
+    if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
+        return (int)$_GET['user_id'];
+    }
+
+    return null;
+}
+
 // Load environment variables (simple .env parser)
 function loadEnv($path)
 {
@@ -91,6 +102,43 @@ function getDbConnection($config)
 }
 
 $pdo = getDbConnection($dbConfig);
+
+// Get the current user ID from the session
+function getCurrentUserId($pdo)
+{
+    try {
+        $sessionName = getenv('SESSION_COOKIE') ?: 'laravel_session';
+
+        if (!isset($_COOKIE[$sessionName])) {
+            return null;
+        }
+
+        // Laravel encrypts the session cookie, so direct lookup won't work
+        // Instead, get the most recently active user as a fallback
+        $sql = "SELECT user_id FROM sessions WHERE user_id IS NOT NULL ORDER BY last_activity DESC LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result && isset($result['user_id'])) {
+            return $result['user_id'];
+        }
+
+        return null;
+    } catch (Exception $e) {
+        // If there's an error, just return null and show all notes
+        return null;
+    }
+}
+
+// Get the current user ID
+$currentUserId = getUserIdFromRequest() ?: getCurrentUserId($pdo);
+
+// Debug information - will only show when debug=1 is in URL
+$isDebugMode = isset($_GET['debug']) && $_GET['debug'] === '1';
+
+// Add debug line to check if user ID is being retrieved correctly
+error_log("Current user ID: " . ($currentUserId ?: "not found"));
 
 // Analytics functions
 class NoteAnalytics
@@ -271,12 +319,12 @@ class NoteAnalytics
 
 // Get analytics data
 $analytics = new NoteAnalytics($pdo, $dbConfig['driver']);
-$totalNotes = $analytics->getTotalNotes();
-$totalWords = $analytics->getWordCount();
-$topTags = $analytics->getTopTags();
-$notesPerMonth = $analytics->getNotesPerMonth();
-$avgNoteLength = $analytics->getAverageNoteLength();
-$commonWords = $analytics->getMostCommonWords();
+$totalNotes = $analytics->getTotalNotes($currentUserId);
+$totalWords = $analytics->getWordCount($currentUserId);
+$topTags = $analytics->getTopTags($currentUserId);
+$notesPerMonth = $analytics->getNotesPerMonth($currentUserId);
+$avgNoteLength = $analytics->getAverageNoteLength($currentUserId);
+$commonWords = $analytics->getMostCommonWords($currentUserId);
 
 ?>
 <!DOCTYPE html>
@@ -285,7 +333,7 @@ $commonWords = $analytics->getMostCommonWords();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Note Analytics - AI Enhanced Note Editor</title>
+    <title>Your Personal Note Analytics - AI Enhanced Note Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" href="/favicon.ico">
@@ -323,9 +371,9 @@ $commonWords = $analytics->getMostCommonWords();
         <div class="mb-6 sm:mb-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="text-center sm:text-left">
-                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">📊 Note Analytics</h1>
-                    <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Insights and statistics about your notes</p>
-                    <p class="text-xs sm:text-sm text-blue-600 mt-1">✨ Powered by Raw PHP (No Laravel Framework)</p>
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">📊 Your Note Analytics</h1>
+                    <p class="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Personal insights and statistics about your notes</p>
+                    <p class="text-xs sm:text-sm text-blue-600 mt-1">✨ Your Personal Note Statistics</p>
                     <p class="text-xs text-gray-500 mt-1">Database: <?= strtoupper($dbConfig['driver']) ?></p>
                 </div>
                 <div class="flex justify-center sm:justify-end">
@@ -336,6 +384,25 @@ $commonWords = $analytics->getMostCommonWords();
             </div>
         </div>
 
+        <?php if ($isDebugMode): ?>
+            <!-- Debug Info (only visible when debug=1 is in URL) -->
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+                <p class="font-bold">Debug Information</p>
+                <p>Current User ID: <?= $currentUserId ?: 'Not Found' ?></p>
+                <p>Session Cookie: <?= isset($_COOKIE[getenv('SESSION_COOKIE') ?: 'laravel_session']) ? 'Present' : 'Not Found' ?></p>
+                <p>DB Driver: <?= $dbConfig['driver'] ?></p>
+                <p>Notes Count (with filter): <?= $totalNotes ?></p>
+                <p>SQL Test:
+                    <?php
+                    $testSql = "SELECT COUNT(*) FROM notes";
+                    $testStmt = $pdo->prepare($testSql);
+                    $testStmt->execute();
+                    echo $testStmt->fetchColumn();
+                    ?>
+                </p>
+            </div>
+        <?php endif; ?>
+
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
             <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
@@ -344,7 +411,7 @@ $commonWords = $analytics->getMostCommonWords();
                         <span class="text-lg sm:text-xl">📝</span>
                     </div>
                     <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Notes</p>
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Your Notes</p>
                         <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= number_format($totalNotes) ?></p>
                     </div>
                 </div>
@@ -356,7 +423,7 @@ $commonWords = $analytics->getMostCommonWords();
                         <span class="text-lg sm:text-xl">📊</span>
                     </div>
                     <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Words</p>
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Your Words</p>
                         <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= number_format($totalWords) ?></p>
                     </div>
                 </div>
@@ -380,7 +447,7 @@ $commonWords = $analytics->getMostCommonWords();
                         <span class="text-lg sm:text-xl">🏷️</span>
                     </div>
                     <div class="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Unique Tags</p>
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Your Tags</p>
                         <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900"><?= count($topTags) ?></p>
                     </div>
                 </div>
