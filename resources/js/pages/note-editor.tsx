@@ -108,12 +108,66 @@ export default function NoteEditor({ note }: NoteEditorProps) {
                 throw new Error('Failed to enhance content');
             }
 
-            const data = await response.json();
-            
-            if (data.error) {
-                setAiResult(data.error);
-            } else if (data.result) {
-                setAiResult(data.result);
+            // Check if response is streaming
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('text/plain')) {
+                // Handle streaming response
+                const reader = response.body?.getReader();
+                const decoder = new TextDecoder();
+
+                if (!reader) {
+                    throw new Error('Failed to get response reader');
+                }
+
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    
+                    // Keep the last incomplete line in buffer
+                    buffer = lines.pop() || '';
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            
+                            if (data === '[DONE]') {
+                                setAiLoading(false);
+                                return;
+                            }
+                            
+                            try {
+                                const parsed = JSON.parse(data);
+                                if (parsed.content) {
+                                    setAiResult(prev => prev + parsed.content);
+                                } else if (parsed.error) {
+                                    setAiResult(parsed.error);
+                                    setAiLoading(false);
+                                    return;
+                                }
+                            } catch (e) {
+                                // Skip malformed JSON
+                                continue;
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Handle non-streaming response (fallback)
+                const data = await response.json();
+                
+                if (data.error) {
+                    setAiResult(data.error);
+                } else if (data.result) {
+                    setAiResult(data.result);
+                }
             }
         } catch (error) {
             console.error('AI Enhancement Error:', error);
