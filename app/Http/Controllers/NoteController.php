@@ -70,7 +70,10 @@ class NoteController extends Controller
             ...$validated
         ]);
 
-        return redirect()->route('notes.edit', $note->id);
+        // Clear the dashboard cache to ensure fresh data on next visit
+        return redirect()->route('notes.edit', $note->id)->with([
+            'dashboardInvalidated' => true
+        ]);
     }
 
     public function update(Request $request, Note $note)
@@ -109,6 +112,7 @@ class NoteController extends Controller
 
         $note->delete();
 
-        return redirect()->route('dashboard')->with('success', 'Note deleted successfully');
+        // Use Inertia::location to force a full page reload and clear all cached data
+        return \Inertia\Inertia::location(route('dashboard'));
     }
 }
