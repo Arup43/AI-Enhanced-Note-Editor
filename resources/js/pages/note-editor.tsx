@@ -57,6 +57,7 @@ export default function NoteEditor({ note }: NoteEditorProps) {
                     preserveScroll: true,
                     preserveState: true,
                 });
+                setAutoSaveTimeout(null);
             }, 2000);
 
             setAutoSaveTimeout(timeout);
