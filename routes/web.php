@@ -37,6 +37,11 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/ai/enhance', [AIController::class, 'enhance'])->name('ai.enhance');
 
+    // Raw PHP Analytics Route (redirect to public/analytics)
+    Route::get('/analytics', function () {
+        return redirect('/analytics');
+    })->name('analytics');
+
     Route::post('/logout', function () {
         Auth::logout();
         return redirect('/');
