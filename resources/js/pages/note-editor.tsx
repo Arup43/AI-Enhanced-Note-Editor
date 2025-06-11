@@ -35,6 +35,7 @@ export default function NoteEditor({ note }: NoteEditorProps) {
     const [selectedText, setSelectedText] = useState('');
     const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [tagInput, setTagInput] = useState(note?.tags?.join(', ') || '');
 
     const { data, setData, post, put, processing, errors } = useForm<NoteFormData>({
         title: note?.title || '',
@@ -130,8 +131,9 @@ export default function NoteEditor({ note }: NoteEditorProps) {
         }
     };
 
-    const handleTagInput = (tagString: string) => {
-        const tags = tagString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    const handleTagInput = (value: string) => {
+        setTagInput(value);
+        const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         setData('tags', tags);
     };
 
@@ -194,7 +196,7 @@ export default function NoteEditor({ note }: NoteEditorProps) {
                                 <Label htmlFor="tags">Tags (comma-separated)</Label>
                                 <Input
                                     id="tags"
-                                    value={data.tags.join(', ')}
+                                    value={tagInput}
                                     onChange={(e) => handleTagInput(e.target.value)}
                                     placeholder="Enter tags separated by commas..."
                                 />
